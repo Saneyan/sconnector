@@ -1,0 +1,45 @@
+{
+  "default": {
+    "settings": {
+      "publickey": true
+    },
+    "ssh_destination_port": "22"
+  },
+
+  "copy": {
+    "example1": {
+      "username": "user",
+      "host": "192.168.0.1",
+      "ssh_destination_port": "999",
+      "pem_file": "/home/user/.ssh/test"
+    }
+  },
+
+  "remote": {
+    "example1": {
+      "username": "user",
+      "host": "192.168.0.1",
+      "ssh_destination_port": "999",
+      "pem_file": "/home/user/.ssh/test"
+    }
+  },
+
+  "forwarding": {
+    "default": {
+      "settings": {
+        "noshell": true
+      },
+      "username": "user",
+      "host": "192.168.6.1",
+      "source": "localhost",
+      "destination": "127.0.0.1",
+      "ssh_destination_port": "999",
+      "pem_file": "/home/user/.ssh/test"
+    },
+
+    "example1": {
+      "source_port": "1000",
+      "destination_port": "2000"
+    }
+  }
+}

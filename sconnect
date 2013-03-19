@@ -1,0 +1,86 @@
+#!/usr/bin/python
+#coding: utf-8
+
+#
+# Secure Connector
+# Copyright (c) 2013 Saneyuki Tadokoro, gfunction Computer Science Laboratory
+#
+
+import sys
+from sconnector.connector import Connector
+from sconnector.checker import Checker
+from sconnector.argv import getargv, getcmd
+from sconnector.exception import *
+from sconnector.utils import *
+from sconnector.doc import *
+
+
+# Configuration file written in JSON
+conf_path = './connections.json'
+
+
+# Begin checking and connecting
+try:
+  # Get a command and check if an appropriate command is assinged
+  cmd = getcmd()
+  Checker.checkcmd(cmd)
+
+  if cmd == 'checkconf' and Checker.checkfile(conf_path) == True:
+    print "O.K."
+  elif cmd == 'help':
+    print getdoc()
+  else:
+    # Get params and check if appropriate parameters are assigned
+    argv = getargv(cmd)
+    Checker.checkargv(cmd, argv)
+
+    # Check if a configuration file exists
+    Checker.checkexistence(conf_path)
+
+    # Connect to servers using SSH
+    obj = getobj(conf_path)
+
+    if cmd in obj:
+      configs = obj[cmd]
+    else:
+      raise ConfigError('There is no option "%s" in a configuration file.' % cmd)
+
+    if argv['target'] in configs:
+      config = configs[argv['target']]
+    else:
+      raise ConfigError('There is no data "%s" in a condiguration file.' % argv['target'])
+
+    if not 'setting' in config:
+      config['settings'] = {}
+
+    default = update(getdefault(configs, getdefault(obj)), config)
+
+    Checker.checkconf(cmd, default) 
+
+    if cmd == 'forwarding':
+      if 'stop' in argv:
+        Connector.stop(default)
+      else:
+        Connector.forwarding(default)
+    elif cmd == 'remote':
+      Connector.remote(default)
+    elif cmd == 'copy':
+      if 'source' in argv and 'remote_destination':
+        Connector.copy(config = default, src = argv['source'], rdes = argv['remote_destination'])
+      elif 'destination' in argv and 'remote_source':
+        Connector.copy(config = default, rsrc = argv['remote_source'], des = argv['destination'])
+
+  sys.exit(0)
+
+except ParameterError, e:
+  print ' ! Parameter Error: ' + e.message
+
+  if e.length > 0:
+    print ' - Length: ' + str(e.length)
+    print ' - Argument: ' + str(e.argv)
+
+  sys.exit(1)
+
+except ConfigError, e:
+  print ' ! Config Error: ' + e.message
+  sys.exit(1)
